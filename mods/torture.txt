@@ -1,0 +1,277 @@
+import java.io.*;
+package mods;
+import mods.*;
+import config.*;
+public class torture implements module
+{
+	public torture(){}
+	
+	public boolean ExecCommand(String command, String[] args, String channel, boolean isAdmin) throws Exception
+	{
+		if(command.compareTo("torture")==0)
+		{    class IRC{
+    static IrcMsg irc_msg=new IrcMsg();
+    static IrcParser irc_parser=new IrcParser(irc_msg);
+
+
+        public static void display(){
+        System.out.print(irc_msg.prefix.nick+" "+irc_msg.cmd.num_reply+":"
+        +irc_msg.cmd.command+"\n");
+        for(int i=0;i&lt;irc_msg.param_cnt;i++)
+        System.out.print(irc_msg.params[i]);
+        System.out.print("\nUser:"+irc_msg.prefix.user+" Host:"+irc_msg.prefix.host+"\n");
+    }
+
+
+        public static void main(String args[])throws IOException{
+        GetData lget=new GetData("raw.log");//GetData gets server message from a log file
+        String line;
+
+
+            while((line=lget.getline())!=null){
+            //System.out.println("Raw:-"+line);
+            irc_parser.irc_scan(line);
+            display();
+        }
+    }
+}
+//A Class for testing the parser
+//You can substitute this class to get data from irc server
+
+
+    class GetData{
+    String log;
+    FileReader file;
+    BufferedReader fin;
+
+
+        GetData(String name){
+        log=name;
+
+
+            try{
+            file=new FileReader(log);
+            fin=new BufferedReader(file);
+
+
+            }catch(FileNotFoundException e){
+            System.out.println("File not found:"+e);
+            System.exit(1);
+        }
+    }
+
+
+        String getline()throws IOException{
+        char c;
+        String line;
+        line=fin.readLine();
+        if(line==null)
+        fin.close();
+        return line;
+    }
+}
+//Idea is to create a skeleton like nested structures
+
+
+    class IrcMsg{
+    static Prefix prefix;
+    static Command cmd;
+    IrcMsg()
+
+
+        {
+        prefix=new Prefix();
+        cmd=new Command();
+    }
+
+
+        class Prefix{
+        String nick;
+        String user;
+        String host;
+    }
+
+
+        class Command{
+        String command;
+        int num_reply;
+    }
+    static String params[]=new String[15];
+    static int param_cnt;
+}
+
+
+    class IrcParser{
+    static IrcMsg irc_msg;
+
+
+        IrcParser(IrcMsg irc_msg){
+        this.irc_msg=irc_msg;
+    }
+
+
+        boolean irc_number(char c){
+        return (c&gt;='0' &amp;&amp; c&lt;='9');
+    }
+
+
+        boolean irc_letter(char c){
+        return ((c&gt;='A' &amp;&amp; c&lt;='Z')||(c&gt;='a' &amp;&amp; c&lt;='z'));
+    }
+
+
+        boolean irc_trail(char c){
+        return (c==':');
+    }
+
+
+        boolean irc_special(char c){
+        return ("-[]\\`^{}".indexOf(c)!=-1);
+    }
+
+
+        boolean irc_user(char c){
+        return ("@\r\n".indexOf(c)==-1);
+    }
+
+
+        boolean irc_host(char c){
+        return (irc_letter(c) || irc_number(c) || c=='.' || c=='-');
+    }
+
+
+        boolean irc_space(char c){
+        return (c==' ');
+    }
+    boolean irc_eol(char c){ //irc commands are generally terminated by CRLF
+    return (c=='\r' || c=='\n');
+}
+
+
+    voidzeromemory(){
+    for(int i=0;i&lt;15;i++)
+    irc_msg.params[i]="";
+    irc_msg.param_cnt=0;
+    irc_msg.prefix.nick="";
+    irc_msg.prefix.user="";
+    irc_msg.prefix.host="";
+    irc_msg.cmd.command="";
+    irc_msg.cmd.num_reply=0;
+}
+
+
+    boolean irc_scan(String irc_str){
+    String msg=irc_str;
+    String tmp="";
+    char c=0;
+    int i=0;
+    int n=0;
+    int pcnt=0;
+    int ncnt=0;
+    int t;
+    int len=msg.length();
+    zeromemory();
+
+
+        if(irc_trail(msg.charAt(0))){
+
+
+            for(i=1;i&lt;len;i++){
+            c=msg.charAt(i);
+            if(!irc_number(c) &amp;&amp; !irc_special(c) &amp;&amp; !irc_letter(c) &amp;&amp;!irc_host(c))
+            break;
+            tmp=tmp+c;
+        }
+        irc_msg.prefix.nick=tmp;
+        //System.out.println("Prefix:"+tmp);
+        tmp="";
+
+
+            if(c=='!'){
+
+
+                for(++i;i&lt;len;i++){
+                c=msg.charAt(i);
+                if(!irc_user(c))break;
+                tmp=tmp+c;
+            }
+            irc_msg.prefix.user=tmp;
+            //System.out.println("User:"+tmp);
+            tmp="";
+        }
+
+
+            if(c=='@'){
+
+
+                for(++i;i&lt;len;i++){
+                c=msg.charAt(i);
+                if(!irc_host(c))break;
+                tmp=tmp+c;
+            }
+            irc_msg.prefix.host=tmp;
+            //System.out.println("Host:"+irc_msg.prefix.host);
+            tmp="";
+        }
+        while(irc_space(msg.charAt(i)))i++;
+    }
+    tmp="";
+
+
+        for(;i&lt;len;i++){
+        c=msg.charAt(i);
+        if(!irc_letter(c) &amp;&amp; !irc_number(c))
+        break;
+        if(irc_number(c))n=1;
+        tmp=tmp+c;
+        ncnt++;
+    }
+    if(n==1 &amp;&amp; ncnt==3)//the numeric reply of server is only 3 digits long
+    irc_msg.cmd.num_reply=Integer.parseInt(tmp);
+    else
+    irc_msg.cmd.command=tmp;
+    //System.out.println("Command:"+irc_msg.cmd.command);
+    if(irc_space(c) &amp;&amp; i&lt;len)c=msg.charAt(++i);
+    tmp="";
+
+
+        for(;i&lt;len;i++,pcnt++){
+        c=msg.charAt(i);
+        /*Trailing parameters can contain spaces..so break if it is a
+        * ':' character and continue to the next segment for handling : characters
+        * to eat all spaces in a single string variable
+        */
+        if(irc_eol(c) || irc_trail(c))break;
+        t=i;
+        while(i&lt;len &amp;&amp; !irc_space(msg.charAt(i))) i++;
+        if(i&gt;=len)break;
+        irc_msg.params[pcnt]=msg.substring(t,i);
+    }
+
+
+        if(irc_trail(c)){
+
+
+            for(i++;i&lt;len;i++){
+            c=msg.charAt(i);
+            if(irc_eol(c))break;
+            tmp=tmp+c;
+        }
+        irc_msg.params[pcnt++]=tmp;
+    }
+    irc_msg.param_cnt=pcnt;
+    //for(i=0;i&lt;pcnt;i++)
+    //System.out.println("params["+i+"]:"+irc_msg.params[i]);
+    return true;
+}
+}return true;
+		}
+		return false;
+	}
+
+	public String GetCommands(boolean isAdmin)
+	{
+		return "torture";
+	}
+
+}

@@ -1,0 +1,29 @@
+package mods;
+import mods.*;
+import config.*;
+
+public class troll implements module
+{
+	public troll(){}
+	
+	public boolean ExecCommand(String command, String[] args, String channel, boolean isAdmin) throws Exception
+	{
+		if(args.length >= 1)
+		{
+			if (isAdmin && (command.compareTo("ban")==0)) 
+			
+			{
+				core.writeChannel(channel,"GTFO, "+args[0]);
+				return true;
+			}
+		}
+		return false;
+	}
+
+     
+	public String GetCommands(boolean isAdmin)
+	{
+		return "troll";
+	}
+	
+}

@@ -1,0 +1,29 @@
+package mods;
+import mods.*;
+import config.*;
+
+public class torture implements module
+{
+	public torture(){}
+	
+	public boolean ExecCommand(String command, String[] args, String channel, boolean isAdmin) throws Exception
+	{
+		if(args.length >= 1)
+		{
+			if (isAdmin && (command.compareTo("torture")==0)) 
+			
+			{
+					core.writeChannel("ChanServ","torture "+channel+" "+args[0]);
+				return true;
+			}
+		}
+		return false;
+	}
+
+     
+	public String GetCommands(boolean isAdmin)
+	{
+		return "torture";
+	}
+	
+}
